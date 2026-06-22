@@ -704,10 +704,12 @@ updateDate();
 </script>
 <style>
 .orgchart-table{width:100%;border-collapse:collapse;font-family:Calibri,sans-serif;font-size:13px}
-.orgchart-table th{background:rgb(60,34,135);color:#fff;padding:8px 10px;border:1px solid #999;text-align:center}
-.orgchart-table td{padding:8px 10px;border:1px solid #bbb;vertical-align:top}
-.orgchart-table tr.section-row td{background:#f0edf8;font-weight:700;font-size:14px;text-align:center;color:rgb(60,34,135);border:1px solid #999}
-.orgchart-table tbody tr:hover{background:#faf8ff}
+.orgchart-table th{background:rgb(60,34,135);color:#fff;padding:10px 12px;border:1px solid #555;text-align:center;font-size:14px}
+.orgchart-table .ias-row td{background:rgb(60,34,135);color:#fff;font-weight:bold;font-size:14px;padding:12px 10px;border:1px solid rgb(40,14,115)}
+.orgchart-table .pcs-row td{background:#fff;color:#333;padding:9px 10px;border:1px solid #ddd}
+.orgchart-table .pcs-row:nth-child(even) td{background:#f5f3ff}
+.orgchart-table .pcs-row:hover td{background:#ede9ff}
+.orgchart-table .section-row td{background:rgb(242,92,5);color:#fff;font-weight:700;font-size:13px;text-align:center;padding:7px 10px;border:1px solid rgb(200,60,0)}
 </style>
 <table class="orgchart-table" id="orgchart-table">
 <thead><tr><th>Sl. No.</th><th>Designation</th><th>Name</th></tr></thead>
@@ -716,15 +718,22 @@ updateDate();
 <script>
 (function(){
   try {
-    var rows = JSON.parse(document.getElementById('sg-orgchart').textContent);
+    var rawRows = JSON.parse(document.getElementById('sg-orgchart').textContent);
+    var sorted = [], group = [];
+    function flush(){
+      group.sort(function(a,b){ return parseInt(a.slno||0)-parseInt(b.slno||0); });
+      group.forEach(function(x){ sorted.push(x); });
+      group = [];
+    }
+    rawRows.forEach(function(r){ if(r.type==='section'){ flush(); sorted.push(r); } else { group.push(r); } });
+    flush();
     var tbody = document.getElementById('orgchart-tbody');
-    tbody.innerHTML = rows.map(function(r){
-      if(r.type==='section'){
-        return '<tr class="section-row"><td colspan="3">'+r.title+'</td></tr>';
-      }
-      return '<tr><td>'+r.slno+'</td><td>'+r.designation+'</td><td>'+r.name+'</td></tr>';
+    tbody.innerHTML = sorted.map(function(r){
+      if(r.type==='section') return '<tr class="section-row"><td colspan="3">'+r.title+'</td></tr>';
+      var cls = (r.grade==='IAS') ? 'ias-row' : 'pcs-row';
+      return '<tr class="'+cls+'"><td style="text-align:center;width:55px">'+r.slno+'</td><td>'+r.designation+'</td><td>'+r.name+'</td></tr>';
     }).join('');
-  } catch(e){}
+  } catch(e){ console.error('orgchart:',e); }
 })();
 </script>
                                     </div>
