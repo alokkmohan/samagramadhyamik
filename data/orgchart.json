@@ -5,12 +5,6 @@
   },
   {
     "type": "row",
-    "slno": "1",
-    "designation": "Library, Kala Utsav & Band Competition",
-    "name": "Swantana Tiwari"
-  },
-  {
-    "type": "row",
     "slno": "3",
     "designation": "Infrastructure development & Inclusive education",
     "name": "Deep Chandra"
@@ -35,14 +29,20 @@
   },
   {
     "type": "row",
-    "slno": "",
-    "designation": "Director general of education",
-    "name": "Dr Monika Rani"
-  },
-  {
-    "type": "row",
     "slno": "2",
     "designation": "Additional State Project Director",
     "name": "Vishnu Kant Pandey"
+  },
+  {
+    "type": "row",
+    "slno": "6",
+    "designation": "Library, Kala Utsav & Band Competition",
+    "name": "Swantana Tiwari"
+  },
+  {
+    "type": "row",
+    "slno": "",
+    "designation": "Director general of education",
+    "name": "Dr Monika Rani"
   }
 ]
