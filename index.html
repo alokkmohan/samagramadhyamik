@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en_US"  dir="ltr">
 
 
@@ -2003,7 +2003,37 @@ const ImageSlider = new Slider(document.querySelector(".image-slider"));
 
 
 
-</body>
+<script>
+(function() {
+  var base = window.location.pathname.replace(/\/[^\/]*$/, '');
+
+  // Load leaders
+  fetch(base + '/data/leaders.json?t=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(leaders) {
+      var ul = document.getElementById('leaders-list');
+      if (!ul) return;
+      ul.innerHTML = leaders.map(function(l) {
+        return '<li tabindex="0"><img src="' + l.photo + '" alt="' + l.name + '"/>' +
+               '<div class="minister-name"><h4>' + l.name + '</h4><p>' + l.designation + '</p></div></li>';
+      }).join('');
+    }).catch(function(){});
+
+  // Load news
+  fetch(base + '/data/news.json?t=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(items) {
+      var marquee = document.getElementById('news-marquee');
+      if (!marquee || !items.length) return;
+      marquee.innerHTML = items.map(function(n) {
+        return '<div class="newsGroup">' +
+               '<div class="newsDate">' + n.day + '<br>' + n.month + '<span>' + n.year + '</span></div>' +
+               '<div class="newsData"><a href="' + (n.link || 'guidelines.html') + '"><strong>' + n.title + '</strong></a></div>' +
+               '<div style="clear:both"></div></div>';
+      }).join('');
+    }).catch(function(){});
+})();
+</script></body>
 
 <!-- Mirrored from samagramadhyamik.upsdc.gov.in/ by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 22 Jun 2026 07:33:58 GMT -->
 </html>

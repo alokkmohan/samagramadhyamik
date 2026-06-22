@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — Samagra Shiksha</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+    .admin-header {
+      background: rgb(60,34,135); color: #fff;
+      padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .admin-header h5 { margin: 0; font-size: 1.1rem; }
+    .card { border: none; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    .card-header { background: rgb(60,34,135); color: #fff; border-radius: 10px 10px 0 0 !important; font-weight: 600; }
+    .btn-primary { background: rgb(60,34,135); border-color: rgb(60,34,135); }
+    .btn-primary:hover { background: rgb(50,24,120); border-color: rgb(50,24,120); }
+    .btn-warning { background: rgb(242,92,5); border-color: rgb(242,92,5); color: #fff; }
+    .btn-warning:hover { background: rgb(210,75,0); color: #fff; }
+    #loginBox { max-width: 480px; margin: 80px auto; }
+    .leader-card {
+      background: #fff; border-radius: 10px;
+      padding: 20px; text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      margin-bottom: 20px;
+    }
+    .leader-card img {
+      width: 90px; height: 90px;
+      border-radius: 50%; object-fit: cover;
+      border: 3px solid rgb(60,34,135);
+    }
+    .leader-card h6 { margin-top: 10px; margin-bottom: 4px; font-weight: 700; }
+    .leader-card p { font-size: .82rem; color: #888; margin-bottom: 12px; }
+    .tab-nav { background: #fff; border-radius: 10px; padding: 6px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    .tab-nav .nav-link { color: #666; border-radius: 8px; cursor: pointer; }
+    .tab-nav .nav-link.active { background: rgb(60,34,135); color: #fff; }
+    .news-item {
+      background: #fff; border-radius: 8px; padding: 14px 16px;
+      margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .news-date-badge {
+      background: rgb(242,92,5); color: #fff;
+      padding: 3px 10px; border-radius: 4px;
+      font-size: .8rem; white-space: nowrap; margin-right: 12px;
+    }
+    .photo-preview {
+      width: 100px; height: 100px;
+      border-radius: 50%; object-fit: cover;
+      border: 3px solid rgb(60,34,135); display: block; margin: 0 auto 12px;
+    }
+    .saving-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,.55);
+      display: none; align-items: center; justify-content: center; z-index: 9999;
+    }
+    .saving-box { background: #fff; border-radius: 12px; padding: 32px 48px; text-align: center; }
+    .saving-box p { margin: 0; font-weight: 600; }
+    .success-toast {
+      position: fixed; top: 20px; right: 20px;
+      background: #28a745; color: #fff;
+      padding: 14px 20px; border-radius: 8px;
+      z-index: 9998; display: none; max-width: 340px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.2);
+    }
+    .page-list-item {
+      background: #fff; border-radius: 8px; padding: 14px 16px;
+      margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .page-list-item a { color: rgb(60,34,135); font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<!-- Saving Overlay -->
+<div class="saving-overlay" id="savingOverlay">
+  <div class="saving-box">
+    <i class="fas fa-spinner fa-spin fa-2x text-primary mb-3 d-block"></i>
+    <p id="savingMsg">Saving…</p>
+  </div>
+</div>
+
+<!-- Success Toast -->
+<div class="success-toast" id="successToast">
+  <i class="fas fa-check-circle mr-2"></i><span id="successMsg"></span>
+</div>
+
+<!-- Header -->
+<div class="admin-header">
+  <h5><i class="fas fa-cog mr-2"></i>Samagra Shiksha — Admin Panel</h5>
+  <button class="btn btn-sm btn-outline-light" id="logoutBtn" style="display:none" onclick="logout()">
+    <i class="fas fa-sign-out-alt mr-1"></i>Logout
+  </button>
+</div>
+
+<!-- ── Login ──────────────────────────────────────────────── -->
+<div id="loginBox">
+  <div class="card">
+    <div class="card-header text-center"><i class="fas fa-lock mr-2"></i>Admin Login</div>
+    <div class="card-body">
+      <p class="text-muted small mb-3">
+        GitHub Personal Access Token chahiye.<br>
+        <a href="https://github.com/settings/tokens/new?scopes=repo&description=Samagra+Admin" target="_blank">
+          <i class="fab fa-github mr-1"></i>Yahan click karke token banayein
+        </a>
+        → <strong>repo</strong> scope select karein → Generate → Copy karein.
+      </p>
+      <div class="form-group">
+        <label><strong>GitHub Token</strong></label>
+        <input type="password" id="githubToken" class="form-control" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+               onkeydown="if(event.key==='Enter') doLogin()">
+      </div>
+      <button class="btn btn-primary btn-block" onclick="doLogin()">
+        <i class="fas fa-sign-in-alt mr-1"></i>Login
+      </button>
+      <div id="loginError" class="text-danger mt-2 text-center small" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main Panel ─────────────────────────────────────────── -->
+<div id="mainPanel" class="container mt-4 mb-5" style="display:none">
+
+  <!-- Tabs -->
+  <div class="tab-nav">
+    <ul class="nav nav-pills flex-wrap">
+      <li class="nav-item">
+        <a class="nav-link active" onclick="showTab('leaders')">
+          <i class="fas fa-users mr-1"></i>Leaders
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" onclick="showTab('news')">
+          <i class="fas fa-newspaper mr-1"></i>News &amp; Updates
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" onclick="showTab('pages')">
+          <i class="fas fa-file-alt mr-1"></i>Pages
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ── Leaders Tab ── -->
+  <div id="leadersTab">
+    <div class="alert alert-info py-2 small">
+      <i class="fas fa-info-circle mr-1"></i>
+      Kisi bhi leader ka naam, designation ya photo edit karein. Save karne par website ~2 minute mein update ho jayegi.
+    </div>
+    <div class="row" id="leadersGrid"></div>
+  </div>
+
+  <!-- ── News Tab ── -->
+  <div id="newsTab" style="display:none">
+    <div class="card mb-4">
+      <div class="card-header"><i class="fas fa-plus mr-1"></i>Nayi News Add Karein</div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-1 col-4 form-group">
+            <label>Din</label>
+            <input type="text" id="newsDay" class="form-control" placeholder="05" maxlength="2">
+          </div>
+          <div class="col-md-2 col-4 form-group">
+            <label>Mahina</label>
+            <select id="newsMonth" class="form-control">
+              <option>Jan</option><option>Feb</option><option>Mar</option>
+              <option>Apr</option><option>May</option><option>Jun</option>
+              <option>Jul</option><option>Aug</option><option>Sep</option>
+              <option>Oct</option><option>Nov</option><option>Dec</option>
+            </select>
+          </div>
+          <div class="col-md-2 col-4 form-group">
+            <label>Saal</label>
+            <input type="text" id="newsYear" class="form-control" value="2024" maxlength="4">
+          </div>
+          <div class="col-md-7 form-group">
+            <label>News Title (Hindi/English)</label>
+            <input type="text" id="newsTitle" class="form-control" placeholder="Khabar ka vivaran yahan likhein...">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Link <span class="text-muted">(optional — kaunse page par jaaye)</span></label>
+          <input type="text" id="newsLink" class="form-control" placeholder="guidelines.html">
+        </div>
+        <button class="btn btn-primary" onclick="addNewsItem()">
+          <i class="fas fa-plus mr-1"></i>List mein Add Karein
+        </button>
+      </div>
+    </div>
+
+    <div id="newsList"></div>
+
+    <button class="btn btn-success btn-lg btn-block mt-3" onclick="saveNews()">
+      <i class="fas fa-save mr-2"></i>Website par Save Karein
+    </button>
+  </div>
+
+  <!-- ── Pages Tab ── -->
+  <div id="pagesTab" style="display:none">
+    <div class="alert alert-info py-2 small">
+      <i class="fas fa-info-circle mr-1"></i>
+      Kisi bhi page ko edit karne ke liye GitHub par seedha file edit karein.
+    </div>
+    <div id="pagesList">
+      <!-- rendered by JS -->
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Edit Leader Modal ── -->
+<div class="modal fade" id="editLeaderModal" tabindex="-1">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="modal-header" style="background:rgb(60,34,135);color:#fff">
+        <h5 class="modal-title"><i class="fas fa-user-edit mr-2"></i>Leader Edit Karein</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" style="color:#fff">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center mb-3">
+          <img id="editPhotoPreview" class="photo-preview" src="" alt="photo">
+        </div>
+        <div class="form-group">
+          <label><strong>Photo Badlein</strong></label>
+          <input type="file" id="editPhotoFile" class="form-control-file" accept="image/*" onchange="previewPhoto(this)">
+          <small class="text-muted d-block mt-1">JPG/PNG file choose karein (max 2MB)</small>
+        </div>
+        <hr>
+        <div class="form-group">
+          <label><strong>Naam</strong> <span class="text-danger">*</span></label>
+          <input type="text" id="editName" class="form-control" placeholder="Jaise: Yogi Adityanath">
+        </div>
+        <div class="form-group">
+          <label><strong>Parichay / Designation</strong> <span class="text-danger">*</span></label>
+          <textarea id="editDesignation" class="form-control" rows="2"
+                    placeholder="Jaise: Honorable Chief Minister"></textarea>
+        </div>
+        <input type="hidden" id="editIndex">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-dismiss="modal">Rad Karein</button>
+        <button class="btn btn-primary" onclick="saveLeader()">
+          <i class="fas fa-save mr-1"></i>Save &amp; Website Update Karein
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const OWNER  = 'alokkmohan';
+const REPO   = 'samagramadhyamik';
+const BRANCH = 'main';
+
+const PAGES = [
+  { name: 'Home Page',             file: 'index.html' },
+  { name: 'About Samagra Shiksha', file: 'aboutsamagrashiksha.html' },
+  { name: 'History',               file: 'history.html' },
+  { name: 'Mission & Vision',      file: 'mission&vision.html' },
+  { name: 'Org Chart (State)',     file: 'organizationalchartstate.html' },
+  { name: 'Samagra Features',      file: 'features.html' },
+  { name: 'Documents / Guidelines',file: 'guidelines.html' },
+  { name: 'UPSOSB',                file: 'upsosb.html' },
+  { name: 'Image Gallery',         file: 'image-gallery.html' },
+  { name: 'Video Gallery',         file: 'video-gallery.html' },
+  { name: 'Contact Us',            file: 'contactus.html' },
+  { name: 'Sitemap',               file: 'sitemap.html' },
+  { name: 'Computer Labs & ICT',   file: 'service/computer-labs-and-ict-integration.html' },
+  { name: 'Teacher Training',      file: 'service/teacher-training.html' },
+  { name: 'Vocational Education',  file: 'service/vocational-education.html' },
+  { name: 'Sports Grant',          file: 'service/sports-grant-and-infrastructure.html' },
+  { name: 'Girls Hostel',          file: 'service/girls-hostel-operation-and-construction.html' },
+  { name: 'Solar Panel',           file: 'service/solar-panel-installation.html' },
+  { name: 'Science Lab',           file: 'service/science-lab-establishment_.html' },
+  { name: 'Students w/ Disabilities', file: 'service/education-for-students-with-disabilities.html' },
+];
+
+let token      = '';
+let leadersData = [];
+let newsData    = [];
+let leadersSHA  = '';
+let newsSHA     = '';
+
+// ── Auth ─────────────────────────────────────────────────
+
+async function doLogin() {
+  const t = document.getElementById('githubToken').value.trim();
+  if (!t) { showLoginErr('Token darj karein.'); return; }
+  showSaving('Token verify ho raha hai…');
+  try {
+    const res = await apiGet('repos/' + OWNER + '/' + REPO);
+    if (!res.ok) throw new Error('Token galat hai ya repo access nahi.');
+    token = t;
+    localStorage.setItem('sg_token', token);
+    await loadData();
+    document.getElementById('loginBox').style.display    = 'none';
+    document.getElementById('mainPanel').style.display   = 'block';
+    document.getElementById('logoutBtn').style.display   = 'inline-block';
+    renderPages();
+  } catch(e) {
+    showLoginErr('Login fail: ' + e.message);
+  }
+  hideSaving();
+}
+
+function logout() {
+  token = '';
+  localStorage.removeItem('sg_token');
+  document.getElementById('loginBox').style.display  = 'block';
+  document.getElementById('mainPanel').style.display = 'none';
+  document.getElementById('logoutBtn').style.display = 'none';
+  document.getElementById('githubToken').value = '';
+}
+
+// ── Load Data ─────────────────────────────────────────────
+
+async function loadData() {
+  showSaving('Data load ho raha hai…');
+  const [ld, nd] = await Promise.all([
+    readFile('data/leaders.json'),
+    readFile('data/news.json')
+  ]);
+  leadersData = ld.content;  leadersSHA = ld.sha;
+  newsData    = nd.content;  newsSHA    = nd.sha;
+  renderLeaders();
+  renderNews();
+  hideSaving();
+}
+
+// ── GitHub API ────────────────────────────────────────────
+
+function apiGet(path) {
+  return fetch('https://api.github.com/' + path, {
+    headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
+  });
+}
+
+async function readFile(path) {
+  const res = await apiGet('repos/' + OWNER + '/' + REPO + '/contents/' + path);
+  if (!res.ok) throw new Error(path + ' padh nahi saka.');
+  const d = await res.json();
+  const raw = atob(d.content.replace(/\n/g,''));
+  const decoded = decodeURIComponent(escape(raw));
+  return { content: JSON.parse(decoded), sha: d.sha };
+}
+
+async function writeFile(path, content, sha, msg) {
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))));
+  const res = await fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + path, {
+    method: 'PUT',
+    headers: {
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ message: msg, content: encoded, sha: sha, branch: BRANCH })
+  });
+  const d = await res.json();
+  if (!res.ok) throw new Error(d.message || 'Save fail hua.');
+  return d.content.sha;
+}
+
+async function uploadImage(filename, dataUrl) {
+  const base64 = dataUrl.split(',')[1];
+  const path   = 'assets/uploads/admin/' + filename;
+  let sha = null;
+  const check = await apiGet('repos/' + OWNER + '/' + REPO + '/contents/' + path);
+  if (check.ok) { const d = await check.json(); sha = d.sha; }
+  const body = { message: 'Upload: ' + filename, content: base64, branch: BRANCH };
+  if (sha) body.sha = sha;
+  const res = await fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + path, {
+    method: 'PUT',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error('Photo upload fail hua.');
+  return path;
+}
+
+// ── Leaders ───────────────────────────────────────────────
+
+function renderLeaders() {
+  var html = leadersData.map(function(l, i) {
+    var imgSrc = 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BRANCH + '/' + l.photo;
+    return '<div class="col-lg-3 col-md-6">' +
+      '<div class="leader-card">' +
+      '<img src="' + imgSrc + '?t=' + Date.now() + '" alt="' + esc(l.name) + '" onerror="this.src=\'https://via.placeholder.com/90\'">' +
+      '<h6>' + esc(l.name) + '</h6>' +
+      '<p>' + esc(l.designation) + '</p>' +
+      '<button class="btn btn-sm btn-warning" onclick="openEdit(' + i + ')">' +
+      '<i class="fas fa-edit mr-1"></i>Edit</button>' +
+      '</div></div>';
+  }).join('');
+  document.getElementById('leadersGrid').innerHTML = html;
+}
+
+function openEdit(i) {
+  var l = leadersData[i];
+  var imgSrc = 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BRANCH + '/' + l.photo;
+  document.getElementById('editIndex').value = i;
+  document.getElementById('editName').value = l.name;
+  document.getElementById('editDesignation').value = l.designation;
+  document.getElementById('editPhotoPreview').src = imgSrc + '?t=' + Date.now();
+  document.getElementById('editPhotoFile').value = '';
+  $('#editLeaderModal').modal('show');
+}
+
+function previewPhoto(input) {
+  if (input.files && input.files[0]) {
+    var r = new FileReader();
+    r.onload = function(e) { document.getElementById('editPhotoPreview').src = e.target.result; };
+    r.readAsDataURL(input.files[0]);
+  }
+}
+
+async function saveLeader() {
+  var i    = parseInt(document.getElementById('editIndex').value);
+  var name = document.getElementById('editName').value.trim();
+  var des  = document.getElementById('editDesignation').value.trim();
+  var file = document.getElementById('editPhotoFile').files[0];
+  if (!name || !des) { alert('Naam aur Designation zaroori hain.'); return; }
+  $('#editLeaderModal').modal('hide');
+  showSaving('Leader save ho raha hai…');
+  try {
+    var photo = leadersData[i].photo;
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) throw new Error('Photo 2MB se badi nahi honi chahiye.');
+      showSaving('Photo upload ho rahi hai…');
+      var dataUrl = await toDataURL(file);
+      var ext     = file.name.split('.').pop().toLowerCase();
+      photo = await uploadImage('leader_' + i + '_' + Date.now() + '.' + ext, dataUrl);
+    }
+    leadersData[i] = { name: name, designation: des, photo: photo };
+    showSaving('Website update ho rahi hai…');
+    leadersSHA = await writeFile('data/leaders.json', leadersData, leadersSHA, 'Update leader: ' + name);
+    renderLeaders();
+    showSuccess('Leader update ho gaya! Website ~2 minute mein refresh ho jayegi.');
+  } catch(e) { alert('Error: ' + e.message); }
+  hideSaving();
+}
+
+// ── News ──────────────────────────────────────────────────
+
+function renderNews() {
+  var list = document.getElementById('newsList');
+  if (!newsData.length) {
+    list.innerHTML = '<div class="text-muted text-center py-4">Abhi koi news nahi hai.</div>'; return;
+  }
+  list.innerHTML = newsData.map(function(n, i) {
+    return '<div class="news-item">' +
+      '<div class="d-flex align-items-center flex-grow-1 flex-wrap">' +
+      '<span class="news-date-badge">' + esc(n.day) + ' ' + esc(n.month) + ' ' + esc(n.year) + '</span>' +
+      '<span class="ml-2">' + esc(n.title) + '</span>' +
+      '</div>' +
+      '<button class="btn btn-sm btn-danger ml-3 flex-shrink-0" onclick="deleteNews(' + i + ')">' +
+      '<i class="fas fa-trash"></i></button>' +
+      '</div>';
+  }).join('');
+}
+
+function addNewsItem() {
+  var day   = document.getElementById('newsDay').value.trim();
+  var month = document.getElementById('newsMonth').value;
+  var year  = document.getElementById('newsYear').value.trim();
+  var title = document.getElementById('newsTitle').value.trim();
+  var link  = document.getElementById('newsLink').value.trim();
+  if (!day || !year || !title) { alert('Din, Saal aur Title zaroori hain.'); return; }
+  newsData.unshift({ day: day, month: month, year: year, title: title, link: link });
+  renderNews();
+  document.getElementById('newsDay').value   = '';
+  document.getElementById('newsTitle').value = '';
+  document.getElementById('newsLink').value  = '';
+}
+
+function deleteNews(i) {
+  if (!confirm('Kya aap yeh news hataana chahte hain?')) return;
+  newsData.splice(i, 1);
+  renderNews();
+}
+
+async function saveNews() {
+  showSaving('News save ho rahi hai…');
+  try {
+    newsSHA = await writeFile('data/news.json', newsData, newsSHA, 'Update news');
+    showSuccess('News update ho gayi! Website ~2 minute mein refresh ho jayegi.');
+  } catch(e) { alert('Error: ' + e.message); }
+  hideSaving();
+}
+
+// ── Pages ─────────────────────────────────────────────────
+
+function renderPages() {
+  var html = PAGES.map(function(p) {
+    var ghUrl = 'https://github.com/' + OWNER + '/' + REPO + '/edit/main/' + p.file;
+    var liveUrl = 'https://' + OWNER + '.github.io/' + REPO + '/' + p.file;
+    return '<div class="page-list-item">' +
+      '<div>' +
+      '<strong>' + esc(p.name) + '</strong>' +
+      '<div class="text-muted small">' + esc(p.file) + '</div>' +
+      '</div>' +
+      '<div class="d-flex">' +
+      '<a href="' + liveUrl + '" target="_blank" class="btn btn-sm btn-outline-secondary mr-2">' +
+      '<i class="fas fa-eye mr-1"></i>Dekhen</a>' +
+      '<a href="' + ghUrl + '" target="_blank" class="btn btn-sm btn-warning">' +
+      '<i class="fas fa-edit mr-1"></i>Edit</a>' +
+      '</div>' +
+      '</div>';
+  }).join('');
+  document.getElementById('pagesList').innerHTML = html;
+}
+
+// ── Helpers ───────────────────────────────────────────────
+
+function showTab(tab) {
+  ['leaders','news','pages'].forEach(function(t) {
+    document.getElementById(t + 'Tab').style.display = (t === tab) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab-nav .nav-link').forEach(function(el, i) {
+    var tabs = ['leaders','news','pages'];
+    el.classList.toggle('active', tabs[i] === tab);
+  });
+}
+
+function showSaving(msg) {
+  document.getElementById('savingMsg').textContent = msg || 'Save ho raha hai…';
+  document.getElementById('savingOverlay').style.display = 'flex';
+}
+function hideSaving() {
+  document.getElementById('savingOverlay').style.display = 'none';
+}
+function showSuccess(msg) {
+  var el = document.getElementById('successToast');
+  document.getElementById('successMsg').textContent = msg;
+  el.style.display = 'block';
+  setTimeout(function() { el.style.display = 'none'; }, 6000);
+}
+function showLoginErr(msg) {
+  var el = document.getElementById('loginError');
+  el.textContent = msg; el.style.display = 'block';
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toDataURL(file) {
+  return new Promise(function(resolve, reject) {
+    var r = new FileReader();
+    r.onload = function(e) { resolve(e.target.result); };
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+// Auto-login if token saved
+(function() {
+  var saved = localStorage.getItem('sg_token');
+  if (saved) { document.getElementById('githubToken').value = saved; doLogin(); }
+})();
+</script>
+</body>
+</html>
