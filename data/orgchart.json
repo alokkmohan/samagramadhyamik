@@ -1,11 +1,48 @@
 [
-  {"type": "row", "slno": "1", "designation": "State Project Director", "name": "Kanchan Verma (IAS)"},
-  {"type": "row", "slno": "2", "designation": "Additional State Project Director", "name": "Vishnu Kant Pandey"},
-  {"type": "section", "title": "Administrative Cell"},
-  {"type": "row", "slno": "1", "designation": "Library, Kala Utsav & Band Competition", "name": "Swantana Tiwari"},
-  {"type": "row", "slno": "2", "designation": "Quality Education", "name": "Raj Kumar"},
-  {"type": "row", "slno": "3", "designation": "Infrastructure development & Inclusive education", "name": "Deep Chandra"},
-  {"type": "row", "slno": "4", "designation": "Vocational Training & PMSRI, Udise", "name": "Shiv Kumar ojha"},
-  {"type": "row", "slno": "5", "designation": "Establishment & ICT, Sports", "name": "Manoj Verma"},
-  {"type": "row", "slno": "6", "designation": "Girl Education & Strengthening", "name": "Pratima Singh"}
+  {
+    "type": "row",
+    "slno": "2",
+    "designation": "Additional State Project Director",
+    "name": "Vishnu Kant Pandey"
+  },
+  {
+    "type": "section",
+    "title": "Administrative Cell"
+  },
+  {
+    "type": "row",
+    "slno": "1",
+    "designation": "Library, Kala Utsav & Band Competition",
+    "name": "Swantana Tiwari"
+  },
+  {
+    "type": "row",
+    "slno": "2",
+    "designation": "Quality Education",
+    "name": "Raj Kumar"
+  },
+  {
+    "type": "row",
+    "slno": "3",
+    "designation": "Infrastructure development & Inclusive education",
+    "name": "Deep Chandra"
+  },
+  {
+    "type": "row",
+    "slno": "4",
+    "designation": "Vocational Training & PMSRI, Udise",
+    "name": "Shiv Kumar ojha"
+  },
+  {
+    "type": "row",
+    "slno": "5",
+    "designation": "Establishment & ICT, Sports",
+    "name": "Manoj Verma"
+  },
+  {
+    "type": "row",
+    "slno": "6",
+    "designation": "Girl Education & Strengthening",
+    "name": "Pratima Singh"
+  }
 ]
