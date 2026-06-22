@@ -192,6 +192,7 @@
     <ul class="nav nav-pills flex-wrap">
       <li class="nav-item"><a class="nav-link active" onclick="showTab('leaders')"><i class="fas fa-users mr-1"></i>Leaders</a></li>
       <li class="nav-item"><a class="nav-link" onclick="showTab('news')"><i class="fas fa-newspaper mr-1"></i>News &amp; Updates</a></li>
+      <li class="nav-item"><a class="nav-link" onclick="showTab('orgchart')"><i class="fas fa-sitemap mr-1"></i>Org Chart</a></li>
       <li class="nav-item"><a class="nav-link" onclick="showTab('pages')"><i class="fas fa-file-alt mr-1"></i>Pages</a></li>
     </ul>
   </div>
@@ -239,6 +240,48 @@
     <div id="newsList"></div>
     <button class="btn btn-success btn-lg btn-block mt-3" onclick="saveNews()">
       <i class="fas fa-save mr-2"></i>Website par Save Karein
+    </button>
+  </div>
+
+  <!-- Org Chart -->
+  <div id="orgchartTab" style="display:none">
+    <div class="alert alert-info py-2 small"><i class="fas fa-info-circle mr-1"></i>Naam ya Designation badlein → Save karein → Website turant update ho jayegi.</div>
+    <div id="orgchartList"></div>
+    <div class="card mt-3">
+      <div class="card-header"><i class="fas fa-plus mr-1"></i>Nayi Entry Add Karein</div>
+      <div class="card-body">
+        <div class="row align-items-end">
+          <div class="col-md-2 form-group mb-0">
+            <label>Type</label>
+            <select id="ocType" class="form-control" onchange="toggleOcType()">
+              <option value="row">Row (Entry)</option>
+              <option value="section">Section Header</option>
+            </select>
+          </div>
+          <div class="col-md-1 form-group mb-0" id="ocSlnoWrap">
+            <label>Sl.No.</label>
+            <input type="text" id="ocSlno" class="form-control" placeholder="1">
+          </div>
+          <div class="col-md-4 form-group mb-0" id="ocDesigWrap">
+            <label>Designation</label>
+            <input type="text" id="ocDesig" class="form-control" placeholder="Designation likhein">
+          </div>
+          <div class="col-md-3 form-group mb-0" id="ocNameWrap">
+            <label>Naam</label>
+            <input type="text" id="ocName" class="form-control" placeholder="Naam likhein">
+          </div>
+          <div class="col-md-4 form-group mb-0" id="ocTitleWrap" style="display:none">
+            <label>Section Title</label>
+            <input type="text" id="ocTitle" class="form-control" placeholder="Jaise: Administrative Cell">
+          </div>
+          <div class="col-auto mt-3">
+            <button class="btn btn-primary" onclick="addOrgRow()"><i class="fas fa-plus mr-1"></i>Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-success btn-lg btn-block mt-3" onclick="saveOrgChart()">
+      <i class="fas fa-save mr-2"></i>Org Chart Save Karein
     </button>
   </div>
 
@@ -482,6 +525,7 @@ async function loadData() {
   leadersData = ld.content; leadersSHA = ld.sha;
   newsData    = nd.content; newsSHA    = nd.sha;
   renderLeaders(); renderNews(); renderPagesList();
+  await loadOrgChart();
   hideSaving();
 }
 
@@ -679,12 +723,110 @@ function renderPagesList() {
   }).join('');
 }
 
+// ── Org Chart ─────────────────────────────────────────────
+
+var orgData = [];
+var orgSHA  = '';
+
+async function loadOrgChart() {
+  try {
+    const d = await readFile('data/orgchart.json');
+    orgData = d.content; orgSHA = d.sha;
+    renderOrgChart();
+  } catch(e) { orgData = []; }
+}
+
+function renderOrgChart() {
+  var html = orgData.map(function(r, i) {
+    if (r.type === 'section') {
+      return '<div class="news-item" style="background:#f0edf8">' +
+        '<div class="flex-grow-1"><strong style="color:rgb(60,34,135)"><i class="fas fa-layer-group mr-2"></i>' + esc(r.title) + '</strong>' +
+        ' <span class="badge badge-secondary ml-2">Section</span></div>' +
+        '<button class="btn btn-sm btn-danger ml-2" onclick="deleteOrgRow(' + i + ')"><i class="fas fa-trash"></i></button>' +
+        '</div>';
+    }
+    return '<div class="news-item">' +
+      '<div class="flex-grow-1">' +
+      '<span class="news-date-badge mr-2">' + esc(r.slno) + '</span>' +
+      '<strong>' + esc(r.designation) + '</strong>' +
+      ' &nbsp;—&nbsp; ' + esc(r.name) +
+      '</div>' +
+      '<div class="d-flex ml-2">' +
+      '<button class="btn btn-sm btn-warning mr-1" onclick="editOrgRow(' + i + ')"><i class="fas fa-edit"></i></button>' +
+      '<button class="btn btn-sm btn-danger" onclick="deleteOrgRow(' + i + ')"><i class="fas fa-trash"></i></button>' +
+      '</div></div>';
+  }).join('');
+  document.getElementById('orgchartList').innerHTML = html || '<div class="text-muted text-center py-3">Koi entry nahi hai.</div>';
+}
+
+function editOrgRow(i) {
+  var r = orgData[i];
+  document.getElementById('ocType').value = r.type;
+  toggleOcType();
+  if (r.type === 'row') {
+    document.getElementById('ocSlno').value  = r.slno || '';
+    document.getElementById('ocDesig').value = r.designation || '';
+    document.getElementById('ocName').value  = r.name || '';
+  } else {
+    document.getElementById('ocTitle').value = r.title || '';
+  }
+  orgData.splice(i, 1);
+  renderOrgChart();
+}
+
+function deleteOrgRow(i) {
+  if (!confirm('Kya aap yeh entry hataayen?')) return;
+  orgData.splice(i, 1); renderOrgChart();
+}
+
+function toggleOcType() {
+  var isSec = document.getElementById('ocType').value === 'section';
+  document.getElementById('ocSlnoWrap').style.display  = isSec ? 'none' : '';
+  document.getElementById('ocDesigWrap').style.display = isSec ? 'none' : '';
+  document.getElementById('ocNameWrap').style.display  = isSec ? 'none' : '';
+  document.getElementById('ocTitleWrap').style.display = isSec ? '' : 'none';
+}
+
+function addOrgRow() {
+  var type = document.getElementById('ocType').value;
+  if (type === 'section') {
+    var title = document.getElementById('ocTitle').value.trim();
+    if (!title) { alert('Section title zaroori hai.'); return; }
+    orgData.push({ type: 'section', title: title });
+    document.getElementById('ocTitle').value = '';
+  } else {
+    var slno  = document.getElementById('ocSlno').value.trim();
+    var desig = document.getElementById('ocDesig').value.trim();
+    var name  = document.getElementById('ocName').value.trim();
+    if (!desig || !name) { alert('Designation aur Naam zaroori hain.'); return; }
+    orgData.push({ type: 'row', slno: slno, designation: desig, name: name });
+    document.getElementById('ocSlno').value = document.getElementById('ocDesig').value = document.getElementById('ocName').value = '';
+  }
+  renderOrgChart();
+}
+
+async function saveOrgChart() {
+  showSaving('Org Chart save ho raha hai…');
+  try {
+    orgSHA = await writeFile('data/orgchart.json', orgData, orgSHA, 'Update org chart');
+    showSaving('organizationalchartstate.html update ho rahi hai…');
+    const { text, sha } = await readTextFile('organizationalchartstate.html');
+    const updated = text.replace(
+      /(<script id="sg-orgchart" type="application\/json">)[\s\S]*?(<\/script>)/,
+      '$1\n' + JSON.stringify(orgData, null, 2) + '\n$2'
+    );
+    await writeTextFile('organizationalchartstate.html', updated, sha, 'Update org chart page');
+    showSuccess('Org Chart update ho gaya! Website turant update ho gayi.');
+  } catch(e) { alert('Error: ' + e.message); }
+  hideSaving();
+}
+
 // ── UI Helpers ────────────────────────────────────────────
 
 function showTab(t) {
-  ['leaders','news','pages'].forEach(function(x){ document.getElementById(x+'Tab').style.display=(x===t)?'block':'none'; });
+  ['leaders','news','orgchart','pages'].forEach(function(x){ document.getElementById(x+'Tab').style.display=(x===t)?'block':'none'; });
   document.querySelectorAll('.tab-nav .nav-link').forEach(function(el,i){
-    el.classList.toggle('active',['leaders','news','pages'][i]===t);
+    el.classList.toggle('active',['leaders','news','orgchart','pages'][i]===t);
   });
 }
 function togglePw(id, btn) {
