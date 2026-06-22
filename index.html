@@ -2006,35 +2006,45 @@ const ImageSlider = new Slider(document.querySelector(".image-slider"));
 
 
 
+<script id="sg-leaders" type="application/json">
+[
+  {"name":"Yogi Adityanath","designation":"Honorable Chief Minister","photo":"assets/uploads/media-uploader/cm1721130750.jpg"},
+  {"name":"Smt. Gulab Devi","designation":"Honorable Minister of State(Independent Charge), Secondary Education","photo":"assets/uploads/media-uploader/mse1721313608.jpg"},
+  {"name":"Shri Partha Sarthi Sen Sharma IAS","designation":"Additional Chief Secretary  Secondary Education","photo":"assets/uploads/admin/leader_2_1782123745100.png"},
+  {"name":"Dr. Monika Rani (IAS)","designation":"Director General  School Education","photo":"assets/uploads/admin/leader_3_1782123856098.jpg"}
+]
+</script>
+<script id="sg-news" type="application/json">
+[
+  {"day":"05","month":"Apr","year":"2024","title":"Welcome to our transformative initiatives under Samagra Shiksha Abhiyan in Uttar Pradesh","link":"guidelines.html"}
+]
+</script>
 <script>
 (function() {
   var RAW = 'https://raw.githubusercontent.com/alokkmohan/samagramadhyamik/main/';
-  var bust = '?t=' + Date.now();
-
-  fetch(RAW + 'data/leaders.json' + bust)
-    .then(function(r){ return r.json(); })
-    .then(function(leaders) {
-      var ul = document.getElementById('leaders-list');
-      if (!ul) return;
+  try {
+    var leaders = JSON.parse(document.getElementById('sg-leaders').textContent);
+    var ul = document.getElementById('leaders-list');
+    if (ul && leaders.length) {
       ul.innerHTML = leaders.map(function(l) {
-        var photo = l.photo.match(/^https?:\/\//) ? l.photo : ('https://raw.githubusercontent.com/alokkmohan/samagramadhyamik/main/' + l.photo);
+        var photo = l.photo.match(/^https?:\/\//) ? l.photo : (RAW + l.photo);
         return '<li tabindex="0"><img src="' + photo + '" alt="' + l.name + '"/>' +
                '<div class="minister-name"><h4>' + l.name + '</h4><p>' + l.designation + '</p></div></li>';
       }).join('');
-    }).catch(function(){});
-
-  fetch(RAW + 'data/news.json' + bust)
-    .then(function(r){ return r.json(); })
-    .then(function(items) {
-      var marquee = document.getElementById('news-marquee');
-      if (!marquee || !items.length) return;
+    }
+  } catch(e) {}
+  try {
+    var items = JSON.parse(document.getElementById('sg-news').textContent);
+    var marquee = document.getElementById('news-marquee');
+    if (marquee && items.length) {
       marquee.innerHTML = items.map(function(n) {
         return '<div class="newsGroup">' +
                '<div class="newsDate">' + n.day + '<br>' + n.month + '<span>' + n.year + '</span></div>' +
                '<div class="newsData"><a href="' + (n.link || 'guidelines.html') + '"><strong>' + n.title + '</strong></a></div>' +
                '<div style="clear:both"></div></div>';
       }).join('');
-    }).catch(function(){});
+    }
+  } catch(e) {}
 })();
 </script></body>
 

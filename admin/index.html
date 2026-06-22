@@ -507,6 +507,44 @@ async function writeFile(path, content, sha, msg) {
   return d.content.sha;
 }
 
+async function readTextFile(path) {
+  const res = await fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + path, {
+    headers: { 'Authorization':'Bearer ' + token }
+  });
+  const d = await res.json();
+  if (!res.ok) throw new Error(d.message);
+  const bytes = Uint8Array.from(atob(d.content.replace(/\n/g,'')), function(c){ return c.charCodeAt(0); });
+  return { text: new TextDecoder('utf-8').decode(bytes), sha: d.sha };
+}
+
+async function writeTextFile(path, text, sha, msg) {
+  const bytes = new TextEncoder().encode(text);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  const res = await fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + path, {
+    method:'PUT',
+    headers:{ 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' },
+    body: JSON.stringify({ message:msg, content:btoa(bin), sha:sha, branch:BRANCH })
+  });
+  const d = await res.json();
+  if (!res.ok) throw new Error(d.message || 'index.html save fail hua.');
+  return d.content.sha;
+}
+
+async function updateIndexHtml(leaders, news) {
+  const { text, sha } = await readTextFile('index.html');
+  let html = text;
+  html = html.replace(
+    /(<script id="sg-leaders" type="application\/json">)[\s\S]*?(<\/script>)/,
+    '$1\n' + JSON.stringify(leaders, null, 2) + '\n$2'
+  );
+  html = html.replace(
+    /(<script id="sg-news" type="application\/json">)[\s\S]*?(<\/script>)/,
+    '$1\n' + JSON.stringify(news, null, 2) + '\n$2'
+  );
+  await writeTextFile('index.html', html, sha, 'Update home page content');
+}
+
 async function uploadImage(filename, dataUrl) {
   const path   = 'assets/uploads/admin/' + filename;
   const base64 = dataUrl.split(',')[1];
@@ -575,10 +613,12 @@ async function saveLeader() {
       photo = await uploadImage('leader_'+i+'_'+Date.now()+'.'+ext, du);
     }
     leadersData[i] = { name:name, designation:des, photo:photo };
-    showSaving('Website update ho rahi hai…');
+    showSaving('Data save ho raha hai…');
     leadersSHA = await writeFile('data/leaders.json', leadersData, leadersSHA, 'Update leader: '+name);
+    showSaving('Home page update ho rahi hai…');
+    await updateIndexHtml(leadersData, newsData);
     renderLeaders();
-    showSuccess('Leader update ho gaya! ~2 minute mein website refresh ho jayegi.');
+    showSuccess('Leader update ho gaya! Website turant update ho gayi.');
   } catch(e) { alert('Error: '+e.message); }
   hideSaving();
 }
@@ -617,7 +657,9 @@ async function saveNews() {
   showSaving('News save ho rahi hai…');
   try {
     newsSHA = await writeFile('data/news.json', newsData, newsSHA, 'Update news');
-    showSuccess('News update ho gayi! ~2 minute mein website refresh ho jayegi.');
+    showSaving('Home page update ho rahi hai…');
+    await updateIndexHtml(leadersData, newsData);
+    showSuccess('News update ho gayi! Website turant update ho gayi.');
   } catch(e) { alert('Error: '+e.message); }
   hideSaving();
 }
