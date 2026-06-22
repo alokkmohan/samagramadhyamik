@@ -1,0 +1,70 @@
+.link-1{
+  color: #3563d1;
+}
+.inner-cont {
+    background-color: #fff;
+    box-shadow: 0 0 5px #b1b1b1;
+    padding: 10px;
+}
+.title-site {
+    border-bottom: 1px dotted #d3e7c0;
+    color: #963d33;
+    font-size: 18px;
+    line-height: 39px;
+    margin: 0;
+    padding: 0;
+  font-weight:800;
+  margin-bottom:10px;
+}
+.sitemap-div{
+   padding: 20px;
+}
+.line{
+    padding-left: 36px;
+}
+ .directory {
+  line-height: 2em;
+}
+.directory__child {
+  position: relative;
+  list-style: none;
+  padding: 0 0 0 5px !important;
+}
+.directory__child a{
+    color: #0c3156;
+    display: inline-block;
+    transition-duration: .3s;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    background-color: #ffc895;
+    text-decoration: none;
+    margin-bottom: 5px;
+}
+.directory__child a:hover{
+    color: #fff;
+    padding-left: 5px;
+    background-color: #c30;
+    text-decoration: none;
+}
+
+.directory__child:last-child::after {
+  display: none;
+}
+.directory__child::before {
+  border-bottom: 1px solid;
+  border-left: 1px solid;
+  content: "";
+  height: 1em;
+  left: -1em;
+  position: absolute;
+  width: 0.7em;
+}
+.directory__child::after {
+  border-left: 1px solid;
+  content: "";
+  height: 100%;
+  left: -1em;
+  position: absolute;
+  top: 0;
+}
